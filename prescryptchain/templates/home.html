@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tz %}
 {# Block HOME #}
 {% block content %}
   {# last 5 blocks #}
@@ -20,7 +21,7 @@
                     <td><a class="a_white" href="/block/{{ rx_block.hash_block }}/"> {{ rx_block.raw_size }} bytes</a></td>
                     <td class="text-center hidden-xs"><a class="a_white" href="/block/{{ rx_block.hash_block }}/">{{ rx_block.hash_block }}</a></td>
                     <td class="text-center visible-xs-block hash_block-mobile"><a class="a_white" href="/block/{{ rx_block.hash_block }}/">{{ rx_block.hash_block }}</a></td>
-                    <td class="text-center"><a href="/block/{{ rx_block.hash_block }}/"><span class="blue-font">{{ rx_block.timestamp|timesince }}</span></a></td>
+                    <td class="text-center"><a href="/block/{{ rx_block.hash_block }}/"><span class="blue-font">{{ rx_block.timestamp|timezone:"America/Mexico_City"|timesince }}</span></a></td>
                   </tr>
                 {% endfor %}
 
@@ -52,7 +53,7 @@
                     <td><a class="a_white" href="/hash/{{ rx.signature }}/"> {{ rx.raw_size }} bytes</a></td>
                     <td class="text-center hidden-xs"><a class="a_white" href="/hash/{{ rx.signature }}/">{{ rx.signature }}</a></td>
                     <td class="text-center visible-xs-block signature-mobile"><a class="a_white" href="/hash/{{ rx.signature }}/">{{ rx.signature }}</a></td>
-                    <td class="text-center"><a href="/hash/{{rx.signature}}/"><span class="blue-font">{{ rx.timestamp|timesince }}</span></a></td>
+                    <td class="text-center"><a href="/hash/{{rx.signature}}/"><span class="blue-font">{{ rx.timestamp|timezone:"America/Mexico_City"|timesince }}</span></a></td>
                   </tr>
                 {% endfor %}
 
