@@ -65,9 +65,12 @@ class BlockManager(models.Manager):
         # Add Merkle Root
         new_block.merkleroot = data_block["merkleroot"]
         # Proof of Existennce layer
-        _poe = PoE() # init proof of existence element
-        txid = _poe.journal(new_block.merkleroot)
-        new_block.poetxid = txid
+        try:
+            _poe = PoE() # init proof of existence element
+            txid = _poe.journal(new_block.merkleroot)
+            new_block.poetxid = txid
+        except Exception as :
+            pass
         # Save
         new_block.save()
 

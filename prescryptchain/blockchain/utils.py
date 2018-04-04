@@ -136,16 +136,16 @@ class PoE(object):
     def journal(self, merkle_root):
         try:
             data = embed_data(to_embed=merkle_root, api_key=settings.BLOCKCYPHER_API_TOKEN, coin_symbol=settings.CHAIN)
-            return data["hash"] 
+            return data["hash"]
         except Exception as e:
-            print("Error :%s, type(%s)" % (e, type(e)))
+            print("[PoE ERROR] Error returning hash from embed data :%s, type(%s)" % (e, type(e)))
             raise e
-    
+
     def attest(self, txid):
         try:
             return get_transaction_details(txid, coin_symbol=settings.CHAIN)
         except Exception as e:
-            print("Error :%s, type(%s)" % (e, type(e)))
+            print("[PoE ERROR] Error returning transantion details :%s, type(%s)" % (e, type(e)))
             raise e
 
 
