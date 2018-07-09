@@ -5,107 +5,75 @@
   Rx Detail
 {% endblock title %}
 {% block subtitle %}
-  <h2>Detalle de la receta</h2>
+  <h2 style="color:#000; margin-left:4em; font-weight:700;">Details of the transaction</h2>
 {% endblock subtitle %}
 {% block content %}
-  {# RX Detail #}
+  {# TX Detail #}
   <section class="container-fluid bg-midnight">
     <div class="row padding-2em">
       <div class="col-xs-12 col-lg-8 col-lg-offset-2">
         <div class="row">
-          <article class="col-xs-12 col-lg-6">
+          <article class="shadowed_details col-xs-12 col-lg-6">
             {# Rx info #}
-            <table id="crypto-table" class="table table-striped">
+            <table style="margin-bottom:0px!important;" id="crypto-table" class="table table-striped">
               <tr>
-                <td colspan="2"><strong>Detalles</strong></td>
+                <td class="a_grey" colspan="2"><strong>Details</strong></td>
               </tr>
               {# for field in prescription #}
+              <tr><td class="a_grey" colspan="2"><strong>Genomic Country Data:</strong></td></tr>
+              <section class="a_grey" class="countries">
+              {% for country in rx.data %}
                 <tr>
-                  <td>Tamaño:</td>
-                  <td>{{ rx.raw_size }} bytes</td>
+                  <td class="a_grey">Country Name {{ forloop.counter }}:</td>
+                  <td class="a_grey" id="medication">{{ country.country_name }}</td>
                 </tr>
                 <tr>
-                  <td>Timestamp:</td>
-                  <td>{{ rx.get_delta_datetime|timezone:"America/Mexico_City" }}</td>
-                </tr>
-                <tr>
-                  <td>Medic Name:</td>
-                  <td id="medic_name">{{ rx.get_data_base64.medic_name }}</td>
-                </tr>
-                <tr>
-                  <td>Medic Cedula:</td>
-                  <td id="medic_cedula">{{ rx.get_data_base64.medic_cedula }}</td>
-                </tr>
-                <tr>
-                  <td>Medic Hospital:</td>
-                  <td id="medic_hospital">{{ rx.get_data_base64.medic_hospital }}</td>
-                </tr>
-                <tr>
-                  <td>Patient Name:</td>
-                  <td id="patient_name">{{ rx.get_data_base64.patient_name }}</td>
-                </tr>
-                <tr>
-                  <td>Patient Age:</td>
-                  <td id="patient_age">{{ rx.get_data_base64.patient_age }}</td>
-                </tr>
-                <tr>
-                  <td>Diagnostico:</td>
-                  <td id="diagnosis">{{ rx.get_data_base64.diagnosis}}</td>
-                </tr>
-              {# endfor #}
-                <tr><td colspan="2"><strong>Medicamentos:</strong></td></tr>
-              {% for med in medications %}
-                <tr>
-                  <td>Medicamento {{ forloop.counter }}:</td>
-                  <td id="medication">{{ med.presentation }}</td>
-                </tr>
-                <tr>
-                  <td>Instrucciones {{ forloop.counter }}:</td>
-                  <td id="instrucciones">{{ med.instructions }}</td>
+                  <td class="a_grey">Percentage {{ forloop.counter }}:</td>
+                  <td class="a_grey" id="instrucciones">{{ country.percentage }}</td>
                 </tr>
               {% endfor %}
+              </section>
               </table>
           </article>
 
-          <article class="col-xs-12 col-lg-6">
+          <article class="shadowed_details col-xs-12 col-lg-6">
             {#Hashes info#}
-            <table id="crypto-table" class="table table-striped">
+            <table style="margin-bottom:0px!important;" id="crypto-table" class="table table-striped">
               <tr>
-                <td colspan="2"><strong>Hashes</strong></td>
+                <td class="a_grey" colspan="2"><strong>Hashes</strong></td>
               </tr>
               <tr>
-                  <td>Hash:</td>
-                  <td><a href="/hash/{{rx.rxid}}">{{ rx.rxid }}</a></td>
+                  <td class="a_grey">Hash:</td>
+                  <td><a class="a_grey" href="/hash/{{rx.rxid}}">{{ rx.rxid }}</a></td>
               </tr>
               <tr>
-                  <td>Hash Anterior:</td>
-                  <td><a href="/hash/{{ rx.get_before_hash }}">{{ rx.get_before_hash }}</a></td>
+                  <td class="a_grey">Previous Hash:</td>
+                  <td><a class="a_grey" href="/hash/{{ rx.get_before_hash }}">{{ rx.get_before_hash }}</a></td>
               </tr>
-
             </table>
           </article>
           <article class="col-xs-12">
-            <p>Public Key: <pre>{{ rx.public_key }}</pre></p>
+            <p style="padding-top:30px;color:#626262;">Public Key: <pre>{{ rx.public_key }}</pre></p>
           </article>
           <article class="col-xs-12 col-lg-6">
-            <p class="text-center"><a href="/validate/{{rx.rxid}}/" class="btn btn-primary btn-lg" style="padding: .5em 4em; font-size:2em;">¡Validar!</a></p>
+            <p class="text-left"><a href="/validate/{{rx.rxid}}/" class="greybutton btn btn-primary" style="padding: .5em 4em; font-size:2em;">Validate</a></p>
           </article>
 
         </div>
     </div>
   </section>
-  <section class="container-fluid padding-2em bg-midnight">
+  <section style="color:#626262;" class="container-fluid padding-2em bg-midnight">
     <div class="row padding-2em">
       <article class="col-xs-12 col-lg-8 col-lg-offset-2">
-        ¿Tienes la clave privada para esta receta? Puedes visualizarla de manera segura aquí
-        <button id="visualize-button" class="btn btn-primary btn-lg" type="button">Visualizar!</button>
+        Do you have the private key for this transaction? You can view it safely here.
+        <button id="visualize-button" class="greybutton btn btn-primary btn-lg" type="button">Visualize</button>
         <div id="encrypt-box" class="padding-2em">
           <div class="form-group">
-            <textarea id="priv_key_id"rows="4" class="form-control" name="private-key-chain" placeholder="Pega tu clave privada aquí"></textarea>
-            <button id="decrypt-button" class="btn btn-primary btn-lg" type="submit">Desencriptar!</button>
+            <textarea id="priv_key_id"rows="4" class="form-control" name="private-key-chain" placeholder="Paste your private key here"></textarea>
+            <button style="margin-top:10px;" id="decrypt-button" class="btn btn-primary btn-lg" type="submit">Decrypt</button>
             <p id="message"></p>
             <div id="qr-box" class="hidden">
-              <p>Posiciona tu código QR aquí y dale clic en desencyptar</p>
+              <p>Position your QR code here and click on decrypt</p>
               <div id="reader" style="width:100%;height:370px"></div>
             </div>
           </div>
@@ -122,11 +90,10 @@
   <script>
 
     $("#qr-box").toggleClass("hidden");
-
     $('#reader').html5_qrcode(function(data){
         // do something when code is read
         console.log(data);
-        $('#messages').html("QR encontrado!");
+        $('#messages').html("QR found!");
         $('#priv_key_id').val(data);
         $('#reader').html5_qrcode_stop();
         $("#qr-box").toggleClass("hidden");

@@ -4,32 +4,32 @@
   Block Detail
 {% endblock title %}
 {% block subtitle %}
-  <h2>Block detail</h2>
+  <h2 style="color:#000; font-weight:700; margin-left:8em;">Block detail</h2>
 {% endblock subtitle %}
 {% block content %}
 
 <section class="container-fluid bg-midnight">
   <div class="row padding-2em">
     <article class="col-xs-12 col-lg-6 col-lg-offset-3 padding-2em">
-      <table id="crypto-table" class="table table-striped">
+      <table style="color:#626262;" id="crypto-table" class="shadowed_details table table-striped">
         <tr>
-          <td colspan="2"><strong>Detalles</strong></td>
+          <td colspan="2"><strong>Details</strong></td>
         </tr>
         <tr>
-          <td>Tamaño:</td>
-          <td>{{ block_object.raw_size }} bytes</td>
+          <td>Size:</td>
+          <td class="a_purple">{{ block_object.raw_size }} bytes</td>
         </tr>
         <tr>
           <td>Hash:</td>
           <td>{{ block_object.hash_block }}</td>
         </tr>
         <tr>
-          <td>Hash anterior:</td>
+          <td><strong>Previous Hash:</strong></td>
           <td><a href="/block/{{ block_object.get_before_hash }}">{{ block_object.get_before_hash }}</a></td>
         </tr>
         <tr>
           <td>Notarized Timestamp:</td>
-          <td>{{ block_object.timestamp|timezone:"America/Mexico_City" }}</td>
+          <td class="a_green">{{ block_object.timestamp|timezone:"UTC" }}</td>
         </tr>
         <tr>
           <td>Merkle Root:</td>
@@ -37,21 +37,21 @@
         </tr>
         {% if block_object.poetxid %}
           <tr>
-            <td>Prueba de Existencia: <a href="/proof-of-existence/">(¿Qué es esto?)</a></td>
-            <td><a href="{{ poe_url }}" target="_blank">{{ block_object.poetxid }}</a></td>
+            <td>Proof of Existence: <a class="a_grey" href="/proof-of-existence/">(What is this?)</a></td>
+            <td><a class="a_grey" href="{{ poe_url }}" target="_blank">{{ block_object.poetxid }}</a></td>
           </tr>
         {% endif %}
       </table>
     </article>
     <article class="col-xs-12 col-lg-6 col-lg-offset-3 padding-2em">
-      <table id="crypto-table" class="table table-striped">
+      <table style="color:#626262;" id="crypto-table" class="shadowed_details table table-striped">
         <tr>
-          <td colspan="2"><strong>Recetas en el bloque</strong></td>
+          <td colspan="2"><strong>Transaction in the Block</strong></td>
         </tr>
         {% for hash in  block_object.data.hashes %}
         <tr>
           <td>Hash</td>
-          <td><a href="/hash/{{ hash }}">{{ hash }}</a></td>
+          <td><a class="a_grey" href="/hash/{{ hash }}">{{ hash }}</a></td>
         </tr>
         {% endfor %}
       </table>

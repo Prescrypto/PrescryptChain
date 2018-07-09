@@ -4,13 +4,13 @@
   <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-      <title>{% block title %}RxChain | Brindamos la blockchain a las prescripciones médicas electrónicas{% endblock title %}</title>
+      <title>{% block title %}SequentiaNavigator | Decentralized BioBank secured by the Blockchain {% endblock title %}</title>
       {% block metablock %}
       {% endblock metablock %}
       <link rel="stylesheet" type="text/css" href="{% static "css/bootstrap.min.css" %}">
       <link rel="stylesheet" type="text/css" href="{% static "css/main.css" %}">
       <link rel="stylesheet" href="{% static "css/animate.css" %}">
-
+      <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
 
       {% block cssblock %}
       {% endblock cssblock %}
@@ -18,55 +18,81 @@
   <body class="bg-portrait">
     <header class="container-fluid bg-blank">
       <article class="row">
-        <div class="col-xs-12 col-lg-8 col-lg-offset-2">
-          <nav id="nav-main" class="navbar navbar-default">
+        <div class="col-xs-12 col-lg-12">
+          <nav class="navbar navbar-default">
             <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
               <div class="navbar-header">
-                  <h1 class="title-font animated fadeInRight"><a href="/" title="Lightweight centralized public blockchain to prescriptions">RxChain</a></h1>
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                </button>
+                <a style="padding-top:20px;" class="teko navbar-brand" href="/" title="Decentralized BioBank secured by the Blockchain">SequentiaNavigator</a>
               </div>
-              <ul class="nav navbar-nav navbar-right">
-                <li><a title="Contacto hola@prescrypto.com" href="mailto:hola@prescrypto.com?Subject=Prescrypt-chain-contact">Contacto</a></li>
-                <li><a title="Nuestro blog de noticias" href="http://blog.prescrypto.com" target="_blank">Blog</a></li>
-                <li>
-                  <form method="GET" action="/hash" class="navbar-form navbar-left" role="search">
-                    <div class="form-group">
-                      <input type="text" class="form-control" name="hash_rx" placeholder="Rx Hash" required>
-                    </div>
-                    <button type="submit" class="btn btn-default">Buscar</button>
-                  </form>
-                </li>
-              </ul>
-            </div>
+
+              <!-- Collect the nav links, forms, and other content for toggling -->
+              <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <form method="GET" action="/hash" style="padding-top:10px;" class="navbar-form navbar-right" role="search">
+                  <div class="form-group">
+                    <input type="text" class="form-control" name="hash_rx" placeholder="Tx Hash" required>
+                  </div>
+                  <button type="submit" class="btn btn-default" style="border-radius:0;">Search</button>
+                </form>
+                <ul class="nav navbar-nav navbar-right">
+                  <li><a title="SequentiaWallet" href="{{WALLET_URL}}">Go to Wallet</a></li>
+                  <li><a title="Contact hello@genobank.io" href="mailto:hello@genobank.io?Subject=Prescrypt-chain-contact">Contact</a></li>
+                </ul>
+              </div><!-- /.navbar-collapse -->
+            </div><!-- /.container-fluid -->
           </nav>
         </div>
       </article>
-      <div class="ribbon">
-        <a href="#">Versión Alpha</a>
-      </div>
     </header>
     <section class="container-fluid">
-      <div class="row hero bg-blue-sky">
-        <div class="col-xs-12 col-lg-8 col-lg-offset-2">
-          {% block subtitle %}<h2>Bienvenido al navegador de <strong>rxchain</strong></h2>{% endblock subtitle %}
+      <div class="row hero bg-grey">
+        <div class="col-xs-12 col-lg-8 col-lg-offset-1">
+          {% block subtitle %}<h2 class="main-title"> Welcome to the <br> SequentiaNavigator</h2>{% endblock subtitle %}
         </div>
       </div>
     </section>
     {% block content %}
     {% endblock content %}
     {# Footer Section #}
-    <footer class="container-fluid bg-midnight">
+    <footer class="container-fluid">
       <div class="row padding-2em">
-
-        <article class="col-xs-12 col-lg-8 col-lg-offset-2">
+        <div class="footer_title col-md-2">
+          <p style="font-size: 15px;"><strong>SequentiaNavigator</strong></p>
+        </div>
+        <div  class="col-md-4 col-xs-12">
           <div class="row">
-            <article class="col-xs-12">
-              <hr />
-            </article>
-            <article class="col-xs-12">
-              <p class="pull-right">We're <span title="Powered" class="glyphicon glyphicon-flash animated powered"></span> by <a href="https://www.prescrypto.com/?from=prescript-chain">Prescrypto</a></p>
-            </article>
+            <div id="menu1" class="footer_menu col-xs-6">
+              <ul class="list-unstyled">
+                <li class="footeranch"><a href="{{WALLET_URL}}">Go to Wallet</a></li>
+                <li class="footeranch"><a href="">Tutorial</a></li>
+                <li class="footeranch"><a href="">FAQ</a></li>
+              </ul>
+            </div>
+            <div class="footer_menu col-xs-6">
+              <ul class="list-unstyled">
+                <li class="footeranch"><a href="">Our Company</a></li>
+                <li class="footeranch"><a href="">Support</a></li>
+                <li class="footeranch"><a href="">Contact</a></li>
+              </ul>
+            </div>
           </div>
-        </article>
+        </div>
+        <div class="footer_txt col-md-4">
+          <p><strong>What is Blockchain</strong></p>
+          <p><small>Blockchain is a new database technology that maintains a continuously-growing list of records called blocks secured from tampering and revision.</small></p>
+        </div>
+        <div class="col-md-2">
+          <div class="social">
+            <i class="fab fa-facebook-square"></i>
+            <i class="fab fa-twitter-square"></i>
+          </div>
+        </div>
       </div>
     </footer>
 

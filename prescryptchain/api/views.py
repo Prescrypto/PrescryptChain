@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 # our models
 from blockchain.models import Block, Prescription, Medication
+from blockchain.utils import pubkey_string_to_rsa, savify_key, pubkey_base64_to_rsa
 
 # Define router
 router = routers.DefaultRouter()
@@ -36,20 +37,15 @@ class PrescriptionSerializer(serializers.ModelSerializer):
         help_text = "Medication Nested Serializer"
     )
     timestamp = serializers.DateTimeField(read_only=False)
+    data = serializers.JSONField(binary=False, read_only=False)
 
     class Meta:
         model = Prescription
         fields = (
             'id',
             'public_key',
-            'medic_name',
-            'medic_cedula',
-            'medic_hospital',
-            'patient_name',
-            'patient_age',
-            'diagnosis',
+            'data',
             'medications',
-            'location',
             'timestamp',
             'signature',
             'previous_hash',
@@ -61,6 +57,7 @@ class PrescriptionSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'rxid', 'previous_hash', 'is_valid', 'block')
 
     def create(self, validated_data):
+        print(validated_data) # Debug only
         rx = Prescription.objects.create_rx(data=validated_data)
         return rx
 
@@ -73,6 +70,15 @@ class PrescriptionViewSet(viewsets.ModelViewSet):
     serializer_class = PrescriptionSerializer
 
     def get_queryset(self):
+        ''' Custom Get queryset '''
+        raw_public_key = self.request.query_params.get('public_key', None)
+        if raw_public_key:
+            try:
+                pub_key = pubkey_string_to_rsa(raw_public_key)
+            except:
+                pub_key , raw_public_key = pubkey_base64_to_rsa(raw_public_key)
+            hex_raw_pub_key = savify_key(pub_key)
+            return Prescription.objects.filter(public_key=hex_raw_pub_key).order_by('-id')
         return Prescription.objects.all().order_by('-id')
 
 
