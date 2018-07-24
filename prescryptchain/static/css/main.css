@@ -51,7 +51,7 @@ a.teko:hover{
   font-family: "Source Sans Pro";
   font-weight: 700;
   font-size: 40px;
-  margin-left:75px;
+  margin-left:4em;
 }
 .genobank{
 	color: #ffffff
@@ -61,6 +61,7 @@ a.teko:hover{
 }
 .navbar{
   margin-bottom: 10px;
+  padding-bottom: 10px;
   width:70%;
   margin:auto;
 }
@@ -187,8 +188,42 @@ input.form-control{
 .navbar-form{
   padding-left:0!important;
 }
+/* RT Chart CSS */
+.highcharts-title{
+  font-family: "Source Sans Pro"!important;
+  text-transform: none!important;
+}
+.graph_section{
+  width:670px!important;
+  height:310px;
+  margin : 7px 0px 0px 0px;
+  padding:0;
+  background-color:#fff;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+.receta_count{
+  padding-left:80px;
+}
+#num_receta{
+  font-size:3em;
+  font-weight:600;
+  color:#535353;
+}
+.graph_h5{
+  color:#909090;
+  font-weight:300;
+}
+.highcharts-credits{
+  display:none;
+}
 
-@media (max-width: 400px) {
+/* Responsive */
+@media (max-width:400px){
+  .main-title{
+    margin-left:2em;
+  }
+}
+@media (max-width: 900px) {
   form.navbar-form.navbar-right{
     display: none!important;
   }
@@ -199,7 +234,7 @@ input.form-control{
     font-size:30px;
   }
   .mainblock{
-    width: 400px!important;
+    width: 100%!important;
   }
   footer{
     padding:40px!important;
@@ -234,5 +269,8 @@ input.form-control{
     width:100%!important;
     height:100%!important;
     margin:auto;
+  }
+  .graph_section{
+  width:900px!important;
   }
 }
