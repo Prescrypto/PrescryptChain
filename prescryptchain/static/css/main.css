@@ -196,7 +196,7 @@ input.form-control{
 .graph_section{
   width:670px!important;
   height:310px;
-  margin : 7px 0px 0px 0px;
+  margin : 7px 0px 0px 7px;
   padding:0;
   background-color:#fff;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
