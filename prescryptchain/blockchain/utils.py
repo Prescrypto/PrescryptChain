@@ -82,7 +82,7 @@ def sign(message, PrivateKey):
 def verify_signature(message, signature, PublicKey):
     ''' Convert signature and check message with it '''
     try:
-        signature = base64.b64decode(signature)
+        signature = binascii.unhexlify(signature)
         return rsa.verify(message, signature, PublicKey)
     except Exception as e:
         print("[CryptoTool, verify ERROR ] Signature or message are corrupted")

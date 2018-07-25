@@ -3,6 +3,44 @@
 {% load staticfiles %}
 {# Block HOME #}
 {% block content %}
+<!-- STATISTICS SECTION-->
+<section id="stat_section">
+  <div class="container">
+    <div class="row centeredrow">
+      <!-- First block-->
+      <div class="whiteblock col-xs-12 col-sm-4">
+        <div class="row">
+          <div class="col-md-3"><img src="{% static 'media/icon_transfer.svg' %}" alt=""></div>
+          <div class="col-md-9">
+            <p id="hashrate">39,122</p>
+            <p>Total Data transferred</p>
+          </div>
+        </div>
+      </div>
+      <!-- Second Block-->
+      <div class="whiteblock col-xs-12 col-sm-4">
+        <div class="row">
+          <div class="col-md-3"><img src="{% static 'media/icon_day.svg' %}" alt=""></div>
+          <div class="col-md-9">
+            <p id="transperday">2,757</p>
+            <p>Transaction per day</p>
+          </div>
+        </div>
+      </div>
+      <!-- Third Block-->
+      <div class="whiteblock col-xs-12 col-sm-4">
+        <div class="row">
+          <div class="col-md-3"><img src="{% static 'media/icon_month.svg' %}" alt=""></div>
+          <div class="col-md-9">
+            <p id="marketcap">76,678</p>
+            <p>Transaction per month</p>
+          </div>
+        </div>
+      </div>
+    </div> <!--Closing main row-->
+  </div> <!-- Closing container-->
+</section>
+<!-- Closing Statistic Section-->
 
 <!-- Graphics section-->
 <section id="stat_section">
@@ -47,8 +85,11 @@
         </div>
       </div>
       <!-- Second Block-->
-      <div class="shadowbl col-md-8" style="width:61%; height:310px; margin-right:0!important;">
-        <div id="chartdiv" style="width: 95%; height: 280px; background-color: #FFFFFF;" ></div>
+      <div class="graph_section col-md-8" style="width:61%; height:310px;">
+        <div id="container" style="min-width: 100%; height: 220px; margin: 0 auto"></div>
+        <div class="genomic_count">
+        <h5 class="graph_h5">Total Genomics created :<br><span id="num_genomic">105,668</span></h5>
+        </div>
       </div>
     </div> <!--Closing main row-->
   </div> <!-- Closing container-->
@@ -105,116 +146,83 @@
 {% endblock content %}
 
 {% block jsblock %}
-    <!-- amCharts javascript sources -->
-    <script type="text/javascript" src="https://www.amcharts.com/lib/3/amcharts.js"></script>
-    <script type="text/javascript" src="https://www.amcharts.com/lib/3/serial.js"></script>
-    <script type="text/javascript" src="https://www.amcharts.com/lib/3/themes/light.js"></script>
+  <!-- Highcharts source files-->
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://code.highcharts.com/js/themes/dark-unica.js"></script>
+
+  <!--Real time charts Javascript Code-->
+  <script>
+    var chart; // global
+    var HOSTNAME = window.location.protocol+'//'+window.location.hostname+(window.location.port ? ':'+window.location.port: '');
+    var TX_STATISTICS_ENDPOINT = HOSTNAME + "/tx-statistics/";
+    function requestData() {
+    $.ajax({
+        url: TX_STATISTICS_ENDPOINT,
+        success: function(point) {
+            var series = chart.series[0],
+                shift = series.data.length > 20; // shift if the series is
+                                                 // longer than 20
+
+            // add the point
+            chart.series[0].addPoint(point, true, shift);
+
+            // call it again after one second
+            setTimeout(requestData, 1000);
+
+            // Add to counter
+            document.getElementById("num_genomic").innerHTML=point[1];
+        },
+        cache: false
+    });
+}
 
 
-    <!-- amCharts javascript code -->
-    <script type="text/javascript">
-      AmCharts.makeChart("chartdiv",
-        {
-          "type": "serial",
-          "categoryField": "category",
-          "plotAreaBorderColor": "#626262",
-          "startDuration": 1,
-          "startEffect": "easeOutSine",
-          "color": "#626262",
-          "theme": "light",
-          "categoryAxis": {
-            "gridPosition": "start",
-            "axisColor": "#626262",
-            "gridColor": "#626262"
-          },
-          "chartCursor": {
-            "enabled": true,
-            "cursorColor": "#626262"
-          },
-          "chartScrollbar": {
-            "enabled": true,
-            "backgroundColor": "#626262"
-          },
-          "trendLines": [],
-          "graphs": [
-            {
-              "balloonText": "[[title]] of [[category]]:[[value]]",
-              "bullet": "round",
-              "id": "AmGraph-1",
-              "title": "Rate",
-              "valueField": "column-1"
-            }
-          ],
-          "guides": [],
-          "valueAxes": [
-            {
-              "id": "ValueAxis-1",
-              "axisColor": "#626262",
-              "title": "Hash/s"
-            }
-          ],
-          "allLabels": [],
-          "balloon": {
-            "color": "#626262"
-          },
-          "titles": [
-            {
-              "id": "Title-1",
-              "size": 15,
-              "text": "Hash Rate"
-            }
-          ],
-          "dataProvider": [
-            {
-              "category": "Ago.",
-              "column-1": "6.3"
-            },
-            {
-              "category": "Sep.",
-              "column-1": "6.1"
-            },
-            {
-              "category": "Oct.",
-              "column-1": "8.1"
-            },
-            {
-              "category": "Nov.",
-              "column-1": "9.9"
-            },
-            {
-              "category": "Dic.",
-              "column-1": "11"
-            },
-            {
-              "category": "Ene.",
-              "column-1": "14"
-            },
-            {
-              "category": "Feb.",
-              "column-1": "20"
-            },
-            {
-              "category": "Mar.",
-              "column-1": "23"
-            },
-            {
-              "category": "Abr.",
-              "column-1": "25"
-            },
-            {
-              "category": "May.",
-              "column-1": "28"
-            },
-            {
-              "category": "Jun.",
-              "column-1": "35"
-            },
-            {
-              "category": "Jul.",
-              "column-1": "38"
-            }
-          ]
-        }
-      );
-    </script>
+document.addEventListener('DOMContentLoaded', function() {
+  window.chart = new Highcharts.Chart({
+    chart: {
+      renderTo: 'container',
+      type: 'spline',
+      animation: Highcharts.svg, // don't animate in old IE
+      marginRight: 10,
+      events: {
+        load: requestData
+      }
+    },
+    title: {
+      text: 'Genomic / s'
+    },
+    xAxis: {
+      type: 'datetime',
+      tickPixelInterval: 150
+    },
+    yAxis: {
+      title: {
+        text: ''
+      },
+      plotLines: [{
+        value: 0,
+        width: 1,
+        color: '#808080'
+      }]
+    },
+    tooltip: {
+      formatter: function () {
+        return Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+          Highcharts.numberFormat(this.y, 2);
+      }
+    },
+    legend: {
+      enabled: false
+    },
+    exporting: {
+      enabled: false
+    },
+    series: [{
+      name: 'Genomic/s',
+      data: []
+    }]
+  });
+});
+  </script>
+
 {% endblock jsblock %}
