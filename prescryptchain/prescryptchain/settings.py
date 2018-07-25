@@ -51,9 +51,6 @@ HC_WORD_INITIAL = os.environ['HC_WORD_INITIAL']
 # Django JET config
 JET_SIDE_MENU_COMPACT = True
 
-# WALLET URL
-WALLET_URL = os.environ["WALLET_URL"]
-
 APPEND_SLASH=True
 
 # Application definition
@@ -72,15 +69,10 @@ INSTALLED_APPS = [
     'api',
     'blockchain',
     'core',
-    'corsheaders',
 
 ]
 
-# To fix CORS on ajax calls
-CORS_ORIGIN_ALLOW_ALL = True
-
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -100,7 +92,6 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'prescryptchain.processors.add_wallet_url',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -149,7 +140,7 @@ REST_FRAMEWORK = {
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Mexico_City'
 
 USE_I18N = True
 

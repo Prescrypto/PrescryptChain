@@ -2,4 +2,5 @@
 *.pyc
 config/
 temp/
+prescryptchain/staticfiles/
 .vagrant/

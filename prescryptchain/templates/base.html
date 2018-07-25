@@ -4,7 +4,7 @@
   <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-      <title>{% block title %}SequentiaNavigator | Decentralized BioBank secured by the Blockchain {% endblock title %}</title>
+      <title>{% block title %}RxChain | Brindamos la blockchain a las prescripciones médicas electrónicas{% endblock title %}</title>
       {% block metablock %}
       {% endblock metablock %}
       <link rel="stylesheet" type="text/css" href="{% static "css/bootstrap.min.css" %}">
@@ -29,7 +29,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
                 </button>
-                <a style="padding-top:20px;" class="teko navbar-brand" href="/" title="Decentralized BioBank secured by the Blockchain">SequentiaNavigator</a>
+                <a style="padding-top:20px;" class="teko navbar-brand" href="/" title="Lightweight centralized public blockchain to prescriptions"><img src="{% static 'media/RxChain_Logo.png' %}" alt=""></a>
               </div>
 
               <!-- Collect the nav links, forms, and other content for toggling -->
@@ -41,8 +41,7 @@
                   <button type="submit" class="btn btn-default" style="border-radius:0;">Search</button>
                 </form>
                 <ul class="nav navbar-nav navbar-right">
-                  <li><a title="SequentiaWallet" href="{{WALLET_URL}}">Go to Wallet</a></li>
-                  <li><a title="Contact hello@genobank.io" href="mailto:hello@genobank.io?Subject=Prescrypt-chain-contact">Contact</a></li>
+                  <li><a title="Contact hola@prescryto.com" href="mailto:hola@prescrypto.com?Subject=Prescrypt-chain-contact">Contact</a></li>
                 </ul>
               </div><!-- /.navbar-collapse -->
             </div><!-- /.container-fluid -->
@@ -53,7 +52,7 @@
     <section class="container-fluid">
       <div class="row hero bg-grey">
         <div class="col-xs-12 col-lg-8 col-lg-offset-1">
-          {% block subtitle %}<h2 class="main-title"> Welcome to the <br> SequentiaNavigator</h2>{% endblock subtitle %}
+          {% block subtitle %}<h2 class="main-title"> Bienvenido al<br>navegador de RxChain</h2>{% endblock subtitle %}
         </div>
       </div>
     </section>
@@ -62,30 +61,31 @@
     {# Footer Section #}
     <footer class="container-fluid">
       <div class="row padding-2em">
+
         <div class="footer_title col-md-2">
-          <p style="font-size: 15px;"><strong>SequentiaNavigator</strong></p>
+          <img src="{% static 'media/RxChain_Logo.png' %}" alt="">
         </div>
         <div  class="col-md-4 col-xs-12">
           <div class="row">
             <div id="menu1" class="footer_menu col-xs-6">
               <ul class="list-unstyled">
-                <li class="footeranch"><a href="{{WALLET_URL}}">Go to Wallet</a></li>
+                <li class="footeranch"><a href="http://blog.prescrypto.com">Blog</a></li>
                 <li class="footeranch"><a href="">Tutorial</a></li>
                 <li class="footeranch"><a href="">FAQ</a></li>
               </ul>
             </div>
             <div class="footer_menu col-xs-6">
               <ul class="list-unstyled">
-                <li class="footeranch"><a href="">Our Company</a></li>
-                <li class="footeranch"><a href="">Support</a></li>
-                <li class="footeranch"><a href="">Contact</a></li>
+                <li class="footeranch"><a href="">Nosotros</a></li>
+                <li class="footeranch"><a href="">Soporte</a></li>
+                <li class="footeranch"><a href="">Contacto</a></li>
               </ul>
             </div>
           </div>
         </div>
         <div class="footer_txt col-md-4">
-          <p><strong>What is Blockchain</strong></p>
-          <p><small>Blockchain is a new database technology that maintains a continuously-growing list of records called blocks secured from tampering and revision.</small></p>
+          <p><strong>¿Qué es Blockchain?</strong></p>
+          <p><small>Es una estructura de datos en la que la información contenida se agrupa en conjuntos (bloques) a los que se les añade metainformaciones relativas a otro bloque de la cadena anterior en una línea temporal.</small></p>
         </div>
         <div class="col-md-2">
           <div class="social">

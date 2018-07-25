@@ -13,10 +13,10 @@
     <article class="col-xs-12 col-lg-6 col-lg-offset-3 padding-2em">
       <table style="color:#626262;" id="crypto-table" class="shadowed_details table table-striped">
         <tr>
-          <td colspan="2"><strong>Details</strong></td>
+          <td colspan="2"><strong>Detalles</strong></td>
         </tr>
         <tr>
-          <td>Size:</td>
+          <td>Tamaño:</td>
           <td class="a_purple">{{ block_object.raw_size }} bytes</td>
         </tr>
         <tr>
@@ -29,7 +29,7 @@
         </tr>
         <tr>
           <td>Notarized Timestamp:</td>
-          <td class="a_green">{{ block_object.timestamp|timezone:"UTC" }}</td>
+          <td class="a_green">{{ block_object.timestamp|timezone:"America/Mexico_City" }}</td>
         </tr>
         <tr>
           <td>Merkle Root:</td>
@@ -38,6 +38,7 @@
         {% if block_object.poetxid %}
           <tr>
             <td>Proof of Existence: <a class="a_grey" href="/proof-of-existence/">(What is this?)</a></td>
+            <td>Prueba de Existencia: <a class="a_grey" href="/proof-of-existence/">(¿Qué es esto?)</a></td>
             <td><a class="a_grey" href="{{ poe_url }}" target="_blank">{{ block_object.poetxid }}</a></td>
           </tr>
         {% endif %}
@@ -46,7 +47,7 @@
     <article class="col-xs-12 col-lg-6 col-lg-offset-3 padding-2em">
       <table style="color:#626262;" id="crypto-table" class="shadowed_details table table-striped">
         <tr>
-          <td colspan="2"><strong>Transaction in the Block</strong></td>
+          <td colspan="2"><strong>Recetas en el bloque</strong></td>
         </tr>
         {% for hash in  block_object.data.hashes %}
         <tr>

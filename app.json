@@ -50,9 +50,6 @@
     },
     "HC_WORD_INITIAL": {
       "required": true
-    },
-    "WALLET_URL": {
-      "required": true
     }
   },
   "formation": {

@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 # AESCipher
 # from core.utils import AESCipher
-import binascii
 ## Hash lib
 import hashlib
 import logging
@@ -158,52 +157,3 @@ class PoE(object):
         except Exception as e:
             print("[PoE ERROR] Error returning transantion details :%s, type(%s)" % (e, type(e)))
             raise e
-
-
-def privkey_string_to_rsa(string_key):
-    '''Take a private key created with jsencrypt and convert it into
-    a rsa data of python'''
-    with open('privkey.pem','wb') as file:
-        file.write(string_key)
-
-    with open('privkey.pem','rb') as file:
-        priv_key = file.read()
-
-    privkey = rsa.PrivateKey.load_pkcs1(priv_key)
-    #data is rsa type
-    return privkey
-
-def pubkey_string_to_rsa(string_key):
-    '''Take a public key created with jsencrypt and convert it into
-    a rsa data of python'''
-    with open('pubkey.pem','wb') as file:
-        file.write(string_key)
-
-    with open('pubkey.pem','rb') as file:
-        pub_key = file.read()
-
-    pubkey = rsa.PublicKey.load_pkcs1_openssl_pem(pub_key)
-    #data is rsa type
-    return pubkey
-
-
-def pubkey_base64_to_rsa(base64_key):
-    ''' Convert base64 pub key to pem file and then pub key rsa object '''
-
-    LINE_SIZE = 64
-    BEGIN_LINE = "-----BEGIN PUBLIC KEY-----"
-    END_LINE = "-----END PUBLIC KEY-----"
-
-    # Replace spaces with plus string, who is remove it when django gets from uri param
-    base64_key.replace(" ", "+")
-
-    lines = [base64_key[i:i+LINE_SIZE] for i in range(0, len(base64_key), LINE_SIZE)]
-
-    raw_key = "{}\n".format(BEGIN_LINE)
-    for line in lines:
-        # iter lines and create s unique string with \n
-        raw_key += "{}\n".format(line)
-
-    raw_key += "{}".format(END_LINE)
-
-    return pubkey_string_to_rsa(raw_key), raw_key

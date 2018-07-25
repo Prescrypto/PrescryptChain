@@ -4,10 +4,10 @@
   Validate Rx
 {% endblock title %}
 {% block subtitle %}
-  <h2 style="color:#000; font-weight:700; margin-left:4em;">Validation of transaction against notary blockchain</h2>
+  <h2 style="color:#000; font-weight:700; margin-left:4em;">Validación de Receta contra notario blockchain</h2>
 {% endblock subtitle %}
 {% block content %}
-  {# TX Detail #}
+  {# RX Detail #}
   <section class="container-fluid bg-midnight">
     <div class="row padding-2em">
       <div class="col-xs-12 col-lg-8 col-lg-offset-2">
@@ -16,22 +16,22 @@
             {# Rx info #}
             <table style="color:#626262;" id="crypto-table" class="shadowed_details table table-striped">
               <tr>
-                <td colspan="2"><strong>Evidence:</strong></td>
+                <td colspan="2"><strong>Evidencia:</strong></td>
               </tr>
                 <tr>
                   <td>Timestamp Notarizada:</td>
                   <td class="a_green">{{ poe.received }}</td>
                 </tr>
                 <tr>
-                  <td>Tx Id in the Blockchain:<a class="a_grey" href="/proof-of-existence/">(¿What is that?)</a></td>
+                  <td>Tx Id en la Blockchain:<a class="a_grey" href="/proof-of-existence/">(¿Qué es esto?)</a></td>
                   <td><a class="a_grey" href="{{ poe_url }}">{{ poe.hash }}</a></td>
                 </tr>
                 <tr>
-                  <td>Root of Merkle Blockchainizada</td>
+                  <td>Raíz de Merkle Blockchainizada</td>
                   <td>{{ poe.outputs.0.data_hex }}</td>
                 </tr>
                 <tr>
-                  <td>Root of Merkle of Genobank</td>
+                  <td>Raíz de Merkle de Prescrypto</td>
                   <td>{{merkle_root}}</td>
                 </tr>
               </table>

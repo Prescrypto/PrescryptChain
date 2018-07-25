@@ -3,13 +3,13 @@
 
 
 
-{% block title %}<title>Create Transaction</title>{% endblock %}
+{% block title %}<title>Crear Prescripción</title>{% endblock %}
 
 {% block content %}
   <hr>
-  <p style='font-weight: bold;'>¡Please, do not put accents!</p>
+  <p style='font-weight: bold;'>¡Por favor no pongas acentos!</p>
   <form action="" style="color: black; padding-left: 100px;" method="post">{% csrf_token %}
     {{ form.as_p }}
-     <input class="btn btn-primary" type="submit" value="Save" />
+     <input class="btn btn-primary" type="submit" value="Guardar" />
   </form>
 {% endblock content%}
