@@ -85,7 +85,7 @@ def verify_signature(message, signature, PublicKey):
         signature = base64.b64decode(signature)
         return rsa.verify(message, signature, PublicKey)
     except Exception as e:
-        print("[CryptoTool, verify ERROR ] Signature or message are corrupted")
+        print("[CryptoTool, verify ERROR ] Signature or message are corrupted: Error: {}, type: {}".format(e, type(e)))
         return False
 
 # Merkle root - gets a list of prescriptions and returns a merkle root

@@ -12,7 +12,7 @@ from rest_framework import mixins, generics
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 # our models
-from blockchain.models import Block, Prescription, Medication
+from blockchain.models import Block, Prescription, Medication, Transaction
 
 # Define router
 router = routers.DefaultRouter()
@@ -56,13 +56,14 @@ class PrescriptionSerializer(serializers.ModelSerializer):
             'raw_size',
             'rxid',
             'is_valid',
-            'block',
+            'transaction',
+            'readable',
         )
-        read_only_fields = ('id', 'rxid', 'previous_hash', 'is_valid', 'block')
+        read_only_fields = ('id', 'rxid', 'previous_hash', 'is_valid',' transaction')
 
     def create(self, validated_data):
-        rx = Prescription.objects.create_rx(data=validated_data)
-        return rx
+        tx = Transaction.objects.create_tx(data=validated_data)
+        return tx.rx
 
 
 class PrescriptionViewSet(viewsets.ModelViewSet):
