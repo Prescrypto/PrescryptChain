@@ -10,7 +10,7 @@ class TxStatistics(View):
 
     def get(self, request):
         ''' GET endpoint for Txs '''
-        total_tx = Prescription.objects.all().count()
+        total_tx = Prescription.objects.all().count()  # TODO modify for Transactions after merge!
         data = [ int(timezone.now().strftime('%Y%m%d%H%M%S')), total_tx ]
         return JsonResponse(data, safe=False)
 
