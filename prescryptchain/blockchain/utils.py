@@ -37,6 +37,10 @@ def calculate_hash(index, previousHash, timestamp, data):
     hash_obj = hashlib.sha256(str(index) + previousHash + str(timestamp) + data)
     return hash_obj.hexdigest()
 
+def create_hash256(data):
+    ''' Given a string return it with hash256 '''
+    hash_obj = hashlib.sha256(str(data))
+    return hash_obj.hexdigest()
 
 # Give it a hex saved string, returns a Key object ready to use
 def un_savify_key(HexPickldKey):
@@ -85,7 +89,8 @@ def verify_signature(message, signature, PublicKey):
         signature = base64.b64decode(signature)
         return rsa.verify(message, signature, PublicKey)
     except Exception as e:
-        print("[CryptoTool, verify ERROR ] Signature or message are corrupted")
+        # TODO CHAnge for logger
+        print("[CryptoTool, verify ERROR ] Signature or message are corrupted: Error: {}, type: {}".format(e, type(e)))
         return False
 
 # Merkle root - gets a list of prescriptions and returns a merkle root
@@ -95,7 +100,7 @@ def get_merkle_root(prescriptions):
     mt = merkletools.MerkleTools() # Default is SHA256
     # Build merkle tree with Rxs
     for rx in prescriptions:
-        mt.add_leaf(rx.rxid)
+        mt.add_leaf(rx.hash_id)
     mt.make_tree();
     # Just to check
     logger.error("Leaf Count: {}".format(mt.get_leaf_count()))
@@ -103,6 +108,7 @@ def get_merkle_root(prescriptions):
     return mt.get_merkle_root();
 
 #  Proves a hash is in merkle root of block merkle tree
+# TODO Change rx hashes to tx hashes
 def is_rx_in_block(target_rx, block):
     #  We need to create a new tree and follow the path to get this proof
     logger = logging.getLogger('django_info')
@@ -111,13 +117,13 @@ def is_rx_in_block(target_rx, block):
     n = 0
     for index, hash in enumerate(rx_hashes):
         mtn.add_leaf(hash)
-        if target_rx.rxid == hash:
+        if target_rx.hash_id == hash:
             n = index
     # Make the tree and get the proof
     mtn.make_tree()
     proof = mtn.get_proof(n)
     logger.error("Proof: {}".format(proof))
-    return mtn.validate_proof(proof, target_rx.rxid, block.merkleroot)
+    return mtn.validate_proof(proof, target_rx.hash_id, block.merkleroot)
 
 
 def get_qr_code(data, file_path="/tmp/qrcode.jpg"):
@@ -157,3 +163,43 @@ class PoE(object):
         except Exception as e:
             print("[PoE ERROR] Error returning transantion details :%s, type(%s)" % (e, type(e)))
             raise e
+
+def privkey_string_to_rsa(string_key):
+    '''Take a private key created with jsencrypt and convert it into
+    a rsa data of python'''
+    with open('privkey.pem','wb') as file:
+        file.write(string_key)
+    with open('privkey.pem','rb') as file:
+        priv_key = file.read()
+    privkey = rsa.PrivateKey.load_pkcs1(priv_key)
+    #data is rsa type
+    return privkey
+
+def pubkey_string_to_rsa(string_key):
+    '''Take a public key created with jsencrypt and convert it into
+    a rsa data of python'''
+    with open('pubkey.pem','wb') as file:
+        file.write(string_key)
+    with open('pubkey.pem','rb') as file:
+        pub_key = file.read()
+
+    pubkey = rsa.PublicKey.load_pkcs1_openssl_pem(pub_key)
+    #data is rsa type
+    return pubkey
+
+def pubkey_base64_to_rsa(base64_key):
+    ''' Convert base64 pub key to pem file and then pub key rsa object '''
+    LINE_SIZE = 64
+    BEGIN_LINE = "-----BEGIN PUBLIC KEY-----"
+    END_LINE = "-----END PUBLIC KEY-----"
+     # Replace spaces with plus string, who is remove it when django gets from uri param
+    base64_key.replace(" ", "+")
+    lines = [base64_key[i:i+LINE_SIZE] for i in range(0, len(base64_key), LINE_SIZE)]
+    raw_key = "{}\n".format(BEGIN_LINE)
+
+    for line in lines:
+        # iter lines and create s unique string with \n
+        raw_key += "{}\n".format(line)
+
+    raw_key += "{}".format(END_LINE)
+    return pubkey_string_to_rsa(raw_key), raw_key
