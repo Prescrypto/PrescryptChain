@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
-from .models import Block, Prescription, Medication
+from .models import Block, Prescription, Medication, Transaction
 
 
 class PrescriptionAdmin(admin.ModelAdmin):

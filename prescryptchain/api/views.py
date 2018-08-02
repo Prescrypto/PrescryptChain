@@ -63,7 +63,7 @@ class PrescriptionSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('id', 'rxid', 'previous_hash', 'is_valid', 'transaction', 'is_readable', )
 
-     def validate(self, data):
+    def validate(self, data):
         ''' Method to control Extra Keys on Payload!'''
         extra_keys = set(self.initial_data.keys()) - set(self.fields.keys())
         if extra_keys:

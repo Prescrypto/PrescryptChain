@@ -371,10 +371,10 @@ class Transaction(models.Model):
 class PrescriptionQueryset(models.QuerySet):
     ''' Add custom querysets'''
 
-     def has_not_block(self):
+    def has_not_block(self):
         return self.filter(block=None)
 
-     def check_existence(self, previous_hash):
+    def check_existence(self, previous_hash):
         return self.filter(hash_id=previous_hash).exists()
 
 
