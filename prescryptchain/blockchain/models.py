@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 # Python Libs
-## Hash lib
 import hashlib
 import base64
 import merkletools
@@ -20,7 +19,6 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.dateformat import DateFormat
 from django.core.cache import cache
-
 # Our methods
 from core.helpers import safe_set_cache
 from core.utils import Hashcash
