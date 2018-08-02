@@ -27,3 +27,4 @@ class PrescriptionAdmin(admin.ModelAdmin):
 admin.site.register(Block)
 admin.site.register(Prescription)
 admin.site.register(Medication)
+admin.site.register(Transaction)

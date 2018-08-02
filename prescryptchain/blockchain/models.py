@@ -26,7 +26,7 @@ from .utils import (
     un_savify_key, savify_key,
     encrypt_with_public_key, decrypt_with_private_key,
     calculate_hash, bin2hex, hex2bin,  get_new_asym_keys, get_merkle_root,
-    verify_signature, PoE
+    verify_signature, PoE , pubkey_string_to_rsa, pubkey_base64_to_rsa, create_hash256
 )
 from .helpers import genesis_hash_generator, GENESIS_INIT_DATA, get_genesis_merkle_root
 from api.exceptions import EmptyMedication, FailedVerifiedSignature
@@ -36,19 +36,22 @@ from api.exceptions import EmptyMedication, FailedVerifiedSignature
 BLOCK_SIZE = settings.BLOCK_SIZE
 logger = logging.getLogger('django_info')
 
+# =====================================================================
+# =============================BLOCKS==================================
+# =====================================================================
 
 class BlockManager(models.Manager):
     ''' Model Manager for Blocks '''
 
-    def create_block(self, rx_queryset):
+    def create_block(self, tx_queryset):
         # Do initial block or create next block
         last_block = Block.objects.last()
         if last_block is None:
             genesis = self.get_genesis_block()
-            return self.generate_next_block(genesis.hash_block, rx_queryset)
+            return self.generate_next_block(genesis.hash_block, tx_queryset)
 
         else:
-            return self.generate_next_block(last_block.hash_block, rx_queryset)
+            return self.generate_next_block(last_block.hash_block, tx_queryset)
 
     def get_genesis_block(self):
         # Get the genesis arbitrary block of the blockchain only once in life
@@ -60,12 +63,12 @@ class BlockManager(models.Manager):
         genesis_block.save()
         return genesis_block
 
-    def generate_next_block(self, hash_before, rx_queryset):
+    def generate_next_block(self, hash_before, tx_queryset):
         # Generete a new block
 
         new_block = self.create(previous_hash=hash_before)
         new_block.save()
-        data_block = new_block.get_block_data(rx_queryset)
+        data_block = new_block.get_block_data(tx_queryset)
         new_block.hash_block = calculate_hash(new_block.id, hash_before, str(new_block.timestamp), data_block["sum_hashes"])
         # Add Merkle Root
         new_block.merkleroot = data_block["merkleroot"]
@@ -73,7 +76,10 @@ class BlockManager(models.Manager):
         try:
             _poe = PoE() # init proof of existence element
             txid = _poe.journal(new_block.merkleroot)
-            new_block.poetxid = txid
+            if txid is not None:
+                new_block.poetxid = txid
+            else:
+                new_block.poetxid = ""
         except Exception as e:
             logger.error("[PoE generate Block Error]: {}, type:{}".format(e, type(e)))
 
@@ -104,17 +110,17 @@ class Block(models.Model):
         size = (len(self.get_before_hash)+len(self.hash_block)+ len(self.get_formatted_date())) * 8
         return size
 
-    def get_block_data(self, rx_queryset):
+    def get_block_data(self, tx_queryset):
         # Get the sum of hashes of last prescriptions in block size
         sum_hashes = ""
         try:
             self.data["hashes"] = []
-            for rx in rx_queryset:
-                sum_hashes += rx.rxid
-                self.data["hashes"].append(rx.rxid)
-                rx.block = self
-                rx.save()
-            merkleroot = get_merkle_root(rx_queryset)
+            for tx in tx_queryset:
+                sum_hashes += tx.txid
+                self.data["hashes"].append(tx.txid)
+                tx.block = self
+                tx.save()
+            merkleroot = get_merkle_root(tx_queryset)
             return {"sum_hashes": sum_hashes, "merkleroot": merkleroot}
 
         except Exception as e:
@@ -137,26 +143,29 @@ class Block(models.Model):
     def __str__(self):
         return self.hash_block
 
+# =====================================================================
+# =============================TRANSACTION=============================
+# =====================================================================
 
-class PrescriptionQueryset(models.QuerySet):
+class TransactionQueryset(models.QuerySet):
     ''' Add custom querysets'''
 
-    def non_validated_rxs(self):
-        return self.filter(is_valid=True).filter(block=None)
+    def has_not_block(self):
+        return self.filter(block=None)
 
 
-class PrescriptionManager(models.Manager):
+class TransactionManager(models.Manager):
     ''' Manager for prescriptions '''
 
     def get_queryset(self):
-        return PrescriptionQueryset(self.model, using=self._db)
+        return TransactionQueryset(self.model, using=self._db)
 
-    def non_validated_rxs(self):
-        return self.get_queryset().non_validated_rxs()
+    def has_not_block(self):
+        return self.get_queryset().has_not_block()
 
-    def create_block_attempt(self):
+    def create_block_attempt(self): # This is where PoW happens
         ''' Use PoW hashcash algoritm to attempt to create a block '''
-        _hashcash_tools = Hashcash(debug=True)
+        _hashcash_tools = Hashcash(debug=settings.DEBUG)
         if not cache.get('challenge') and not cache.get('counter') == 0:
             challenge = _hashcash_tools.create_challenge(word_initial=settings.HC_WORD_INITIAL)
             safe_set_cache('challenge', challenge)
@@ -165,7 +174,7 @@ class PrescriptionManager(models.Manager):
         is_valid_hashcash, hashcash_string = _hashcash_tools.calculate_sha(cache.get('challenge'), cache.get('counter'))
 
         if is_valid_hashcash:
-            block = Block.objects.create_block(self.non_validated_rxs()) # TODO add on creation hash and merkle
+            block = Block.objects.create_block(self.has_not_block()) # TODO add on creation hash and merkle
             block.hashcash = hashcash_string
             block.nonce = cache.get('counter')
             block.save()
@@ -177,65 +186,260 @@ class PrescriptionManager(models.Manager):
             safe_set_cache('counter', counter)
 
 
-    def create_rx(self, data, **kwargs):
+    def is_transfer_valid(self, data, _previous_hash, pub_key, _signature):
+        ''' Method to handle transfer validity!'''
+        if not Prescription.objects.check_existence(data['previous_hash']):
+            logger.info("[IS_TRANSFER_VALID] Send a transfer with a wrong reference previous_hash!")
+            return (False, None)
 
-        rx = self.create_raw_rx(data)
+        rx = Prescription.objects.get(hash_id=data['previous_hash'])
 
-        if "medications" in data and len(data["medications"]) != 0:
-            for med in data["medications"]:
-                Medication.objects.create_medication(prescription=rx, **med)
+        if not rx.readable:
+            logger.info("[IS_TRANSFER_VALID]The rx is not readable")
+            return (False, rx)
 
-        return rx
+        _msg = json.dumps(data['data'], separators=(',',':'))
 
-    def create_raw_rx(self, data, **kwargs):
-        # This calls the super method saving all clean data first
-        rx = Prescription()
+        if not  verify_signature(_msg, _signature, un_savify_key(rx.public_key)):
+            logger.info("[IS_TRANSFER_VALID]Signature is not valid!")
+            return (False, rx)
+
+        logger.info("[IS_TRANSFER_VALID] Success")
+        return (True, rx)
+
+
+
+    def create_tx(self, data, **kwargs):
+        ''' Custom method for create Tx with rx item '''
+
+        ''' Get initial data '''
+        _signature = data.pop("signature", None)
         # Get Public Key from API
         raw_pub_key = data.get("public_key")
-        pub_key = un_savify_key(raw_pub_key) # Make it usable
+        # Initalize some data
+        _msg = json.dumps(data['data'], separators=(',',':'))
+        _is_valid_tx = False
+        _rx_before = None
 
-        # Extract signature
-        _signature = data.pop("signature", None)
+        try:
+            pub_key = pubkey_string_to_rsa(raw_pub_key) # Make it usable
+        except Exception as e:
+            # Attempt to create public key with base64
+            pub_key, raw_pub_key = pubkey_base64_to_rsa(raw_pub_key)
 
-        rx.medic_name = bin2hex(encrypt_with_public_key(data["medic_name"].encode("utf-8"), pub_key))
-        rx.medic_cedula = bin2hex(encrypt_with_public_key(data["medic_cedula"].encode("utf-8"), pub_key))
-        rx.medic_hospital = bin2hex(encrypt_with_public_key(data["medic_hospital"].encode("utf-8"), pub_key))
-        rx.patient_name = bin2hex(encrypt_with_public_key(data["patient_name"].encode("utf-8"), pub_key))
-        rx.patient_age = bin2hex(encrypt_with_public_key(str(data["patient_age"]).encode("utf-8"), pub_key))
-        # Temporary fix overflow problems
-        # TODO fix problem with rsa encrypts with too long characters
-        if len(data['diagnosis']) > 52:
-            data['diagnosis'] = data['diagnosis'][0:50]
-        rx.diagnosis = bin2hex(encrypt_with_public_key(data["diagnosis"].encode("utf-8"), pub_key))
+        hex_raw_pub_key = savify_key(pub_key)
 
-        # This is basically the address
-        rx.public_key = raw_pub_key
+        ''' Get previous hash '''
+        _previous_hash = data.get('previous_hash', '0')
+        logger.info("previous_hash: {}".format(_previous_hash))
+
+        ''' Check initial or transfer '''
+        if _previous_hash == '0':
+            # It's a initial transaction
+            if verify_signature(_msg, _signature, pub_key):
+                logger.info("[CREATE_TX] Tx valid!")
+                _is_valid_tx = True
+
+        else:
+            # Its a transfer, so check validite transaction
+            _is_valid_tx, _rx_before = self.is_transfer_valid(data, _previous_hash, pub_key, _signature)
+
+
+        ''' FIRST Create the Transaction '''
+        tx = self.create_raw_tx(data, _is_valid_tx=_is_valid_tx, _signature=_signature, pub_key=pub_key)
+
+        ''' THEN Create the Data Item(prescription) '''
+        rx = Prescription.objects.create_rx(
+            data,
+            _signature=_signature,
+            pub_key=hex_raw_pub_key, # This is basically the address
+            _is_valid_tx=_is_valid_tx,
+            _rx_before=_rx_before,
+            transaction=tx
+        )
+
+        ''' LAST do create block attempt '''
+        self.create_block_attempt()
+
+        # Return the transaction object
+        return rx
+
+    def create_raw_tx(self, data, **kwargs):
+        ''' This method just create the transaction instance '''
+
+        ''' START TX creation '''
+        tx = Transaction()
+        # Get Public Key from API
+        pub_key = kwargs.get("pub_key", None) # Make it usable
+        tx.signature = kwargs.get("_signature", None)
+        tx.is_valid = kwargs.get("_is_valid_tx", False)
+        tx.timestamp = timezone.now()
+
+        # Set previous hash
+        if self.last() is None:
+            tx.previous_hash = "0"
+        else:
+            tx.previous_hash = self.last().txid
+
+        # Create raw data to generate hash and save it
+        tx.create_raw_msg()
+        tx.hash()
+        tx.save()
+
+        ''' RETURN TX '''
+        return tx
+
+# Simplified Tx Model
+@python_2_unicode_compatible
+class Transaction(models.Model):
+    # Cryptographically enabled fields
+    # Necessary infomation
+    timestamp = models.DateTimeField(default=timezone.now, db_index=True)
+    raw_msg = models.TextField(blank=True, default="") # Anything can be stored here
+    # block information
+    block = models.ForeignKey('blockchain.Block', related_name='transactions', null=True, blank=True)
+    signature = models.TextField(blank=True, default="")
+    is_valid = models.BooleanField(default=False, blank=True)
+    txid = models.TextField(blank=True, default="")
+    previous_hash = models.TextField(blank=True, default="")
+    # Details
+    details = JSONField(default={}, blank=True)
+
+    objects = TransactionManager()
+
+
+    # Hashes msg_html with utf-8 encoding, saves this in and hash in _signature
+    def hash(self):
+        hash_object = hashlib.sha256(self.raw_msg)
+        self.txid = hash_object.hexdigest()
+
+    @property
+    def get_pub_key_receiver(self):
+        ''' Get public key of receiver on Pem string '''
+        _public_key = un_savify_key(self.public_key_receiver)
+        return _public_key.save_pkcs1(format="PEM")
+
+    def create_raw_msg(self):
+        # Create raw html and encode
+        msg = (
+            self.timestamp.isoformat() +
+            self.signature +
+            str(self.is_valid) +
+            self.previous_hash
+        )
+        self.raw_msg = msg.encode('utf-8')
+
+    def get_formatted_date(self, format_time='d/m/Y'):
+        # Correct date and format
+        localised_date = self.timestamp
+        if not settings.DEBUG:
+            # Remember to change the time each time change
+            localised_date = localised_date - timedelta(hours=6)
+
+        return DateFormat(localised_date).format(format_time)
+
+    @cached_property
+    def get_delta_datetime(self):
+        ''' Fix 6 hours timedelta on tx '''
+        return self.timestamp - timedelta(hours=6)
+
+    # THIS NEEDS TO be update to account for Prescriptions
+    @cached_property
+    def raw_size(self):
+        # get the size of the raw tx
+        size = (
+            len(self.signature)+
+            len(str(self.get_formatted_date()))
+        )
+        return size * 8
+
+    @cached_property
+    def get_previous_hash(self):
+        ''' Get before hash transaction '''
+        return self.previous_hash
+
+
+    def __str__(self):
+        return self.txid
+
+
+# =====================================================================
+# =============================PRESCRIPTION============================
+# =====================================================================
+
+
+class PrescriptionQueryset(models.QuerySet):
+    ''' Add custom querysets'''
+
+     def has_not_block(self):
+        return self.filter(block=None)
+
+     def check_existence(self, previous_hash):
+        return self.filter(hash_id=previous_hash).exists()
+
+
+class PrescriptionManager(models.Manager):
+    ''' Manager for prescriptions '''
+
+    def get_queryset(self):
+        return PrescriptionQueryset(self.model, using=self._db)
+
+    def check_existence(self, previous_hash):
+        return self.get_queryset().check_existence(previous_hash)
+
+    def has_not_block(self):
+        return self.get_queryset().has_not_block()
+
+    def create_rx(self, data, **kwargs):
+
+        # This calls the super method saving all clean data first
+        _rx_before = kwargs.get('_rx_before', None)
+        rx = Prescription(
+            medic_name=data.get("medic_name", ""),
+            medic_cedula=data.get("medic_cedula", ""),
+            medic_hospital=data.get("medic_cedula", ""),
+            patient_name=data.get("patient_name", ""),
+            patient_age=data.get("patient_age", ""),
+            diagnosis=data.get("diagnosis", ""),
+            timestamp=data.get("timestamp", None),
+            public_key=kwargs.get("pub_key", ""),
+            signature=kwargs.get("_signature", ""),
+            is_valid=kwargs.get("_is_valid_tx", False),
+            transaction=kwargs.get("transaction", None)
+        )
+
+        if "data" in data:
+            rx.data = data["data"]
 
         if "location" in data:
             rx.location = data["location"]
 
-        rx.timestamp = data["timestamp"]
-        rx.create_raw_msg()
-
-        rx.hash()
-        # Save signature
-        rx.signature = _signature
-
-        if verify_signature(json.dumps(sorted(data)), _signature, pub_key):
-            rx.is_valid = True
-        else:
-            rx.is_valid = False
-
         # Save previous hash
-        if self.last() is None:
+        if _rx_before is None:
+            logger.info("[CREATE_RX] New transaction!")
             rx.previous_hash = "0"
+            rx.readable = True
         else:
-            rx.previous_hash = self.last().rxid
+            logger.info("[CREATE_RX] New transaction transfer!")
+            rx.previous_hash = _rx_before.hash_id
+            if rx.is_valid:
+                logger.info("[CREATE_RX] Tx transfer is valid!")
+                rx.readable = True
+                _rx_before.transfer_ownership()
+            else:
+                logger.info("[CREATE_RX] Tx transfer not valid!")
 
+        # Assign medications to RX
+        if "medications" in data and len(data["medications"]) != 0:
+            for med in data["medications"]:
+                Medication.objects.create_medication(prescription=rx, **med)
+
+        # Generate raw msg, create hash and save it
+        rx.create_raw_msg()
+        rx.hash()
         rx.save()
 
-        self.create_block_attempt()
-
+        ''' Return RX object'''
         return rx
 
 
@@ -243,19 +447,20 @@ class PrescriptionManager(models.Manager):
 @python_2_unicode_compatible
 class Prescription(models.Model):
     # Cryptographically enabled fields
-    public_key = models.CharField(max_length=3000, blank=True, default="")
-    private_key = models.CharField(max_length=3000, blank=True, default="") # Aquí puedes guardar el PrivateKey para desencriptar
+    transaction = models.ForeignKey('blockchain.Transaction', related_name='prescriptions', null=True, blank=True)
+    readable = models.BooleanField(default=False, blank=True) # Filter against this when
+    public_key = models.TextField(blank=True, default="")
     ### Patient and Medic data (encrypted)
-    medic_name = models.CharField(blank=True, max_length=255, default="")
-    medic_cedula = models.CharField(blank=True, max_length=255, default="")
-    medic_hospital = models.CharField(blank=True, max_length=255, default="")
-    patient_name = models.CharField(blank=True, max_length=255, default="")
-    patient_age = models.CharField(blank=True, max_length=255, default="")
+    medic_name = models.TextField(blank=True, default="")
+    medic_cedula = models.TextField(blank=True, default="")
+    medic_hospital = models.TextField(blank=True, default="")
+    patient_name = models.TextField(blank=True, default="")
+    patient_age = models.TextField(blank=True, default="")
     diagnosis = models.TextField(default="")
     ### Public fields (not encrypted)
     # Misc
     timestamp = models.DateTimeField(default=timezone.now, db_index=True)
-    location = models.CharField(blank=True, max_length=255, default="")
+    location = models.TextField(blank=True, default="")
     raw_msg = models.TextField(blank=True, default="") # Anything can be stored here
     location_lat = models.FloatField(null=True, blank=True, default=0) # For coordinates
     location_lon = models.FloatField(null=True, blank=True, default=0)
@@ -265,17 +470,19 @@ class Prescription(models.Model):
     bought = models.BooleanField(default=False)
     # Main
     block = models.ForeignKey('blockchain.Block', related_name='block', null=True, blank=True)
-    signature = models.CharField(max_length=255, null=True, blank=True, default="")
-    is_valid = models.BooleanField(default=True, blank=True)
-    rxid = models.CharField(max_length=255, blank=True, default="")
-    previous_hash = models.CharField(max_length=255, default="")
+    signature = models.TextField(blank=True, default="")
+    is_valid = models.BooleanField(default=False, blank=True)
+    hash_id = models.TextField(blank=True, default="")
+    previous_hash = models.TextField(default="")
+
+    data = JSONField(default={}, blank=True)
 
     objects = PrescriptionManager()
 
     # Hashes msg_html with utf-8 encoding, saves this in and hash in _signature
     def hash(self):
         hash_object = hashlib.sha256(self.raw_msg)
-        self.rxid = hash_object.hexdigest()
+        self.hash_id = hash_object.hexdigest()
 
     @cached_property
     def get_data_base64(self):
@@ -311,6 +518,7 @@ class Prescription(models.Model):
             self.patient_age +
             self.diagnosis
         )
+        msg += json.dumps(self.data) + timezone.now().isoformat() +  self.previous_hash
         self.raw_msg = msg.encode('utf-8')
 
 
@@ -332,7 +540,7 @@ class Prescription(models.Model):
         # get the size of the raw rx
         size = (
             len(self.raw_msg) + len(self.diagnosis) +
-            len(self.location) + len(self.rxid) +
+            len(self.location) + len(self.hash_id) +
             len(self.medic_name) + len(self.medic_cedula) +
             len(self.medic_hospital) + len(self.patient_name) +
             len(self.patient_age) + len(str(self.get_formatted_date()))
@@ -349,7 +557,7 @@ class Prescription(models.Model):
 
 
     def __str__(self):
-        return self.rxid
+        return self.hash_id
 
 
 class MedicationManager(models.Manager):
@@ -365,15 +573,13 @@ class Medication(models.Model):
     prescription = models.ForeignKey('blockchain.Prescription',
         related_name='medications'
         )
-    active = models.CharField(blank=True, max_length=255, default="")
-    presentation = models.CharField(
-        blank=True, max_length=255,
-    )
+    active = models.TextField(blank=True, default="")
+    presentation = models.TextField(blank=True, default="")
     instructions = models.TextField(blank=True, default="")
-    frequency = models.CharField(blank=True, max_length=255, default="")
-    dose = models.CharField(blank=True, max_length=255, default="")
+    frequency = models.TextField(blank=True, default="")
+    dose = models.TextField(blank=True, default="")
     bought = models.BooleanField(default=False)
-    drug_upc = models.CharField(blank=True, max_length=255, default="", db_index=True)
+    drug_upc = models.TextField(blank=True, default="", db_index=True)
 
     objects = MedicationManager()
 
